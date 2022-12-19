@@ -90,3 +90,18 @@ check_CSGD_args <- function(ARGS, N){
     if(is.null(ARGS$PROB)) out$PROB <- .1
     return(out)
 }
+
+#'@export
+get_tidy_path <- function(MOD_OBJ, PATH_LAB){
+    iters <- MOD_OBJ$iterations_subset
+    path  <- MOD_OBJ$fit[[PATH_LAB]]
+
+    out <- dplyr::tibble(iter = iters) %>%
+        dplyr::mutate(
+            path_chosen = split(t(path), rep(1:nrow(path), each = ncol(path)))
+        )
+
+    colnames(out) <- c('iter', PATH_LAB)
+
+    return(out)
+}

@@ -1,10 +1,16 @@
 seed <- 1
 set.seed(seed)
-p <- 20; q <- 2; n <- 5000
+p <- 40; q <- 4; n <- 2000
 constrMat <- build_constrMat(p,q,'simple')
 true_load <- gen_loadings(FIXED = NULL, CONSTRAINT_MAT = constrMat, SEED = seed)
 true_tau <- c(-1.2, 0, 1.2)
-true_latent <- matrix(.7,q,q); diag(true_latent) <- 1
+
+mat <- matrix(runif(q*q, 0,1),q,q)
+mat[!lower.tri(mat)] <- 0
+mat <- mat + t(mat)
+diag(mat) <- 1
+true_latent <- mat
+#true_latent <- matrix(runif(q*q, 0,1),q,q); diag(true_latent) <- 1
 true_theta <- get_theta(rep(true_tau, p), true_load, true_latent, cat, constrMat, 0)
 manifest <- gen_URV_data(n, true_load, true_tau, true_latent)
 
@@ -23,13 +29,11 @@ lambda_init = rep(0.5, sum(CONSTRMAT))
 transformed_rhos_init = rep(0, q*(q-1)/2)
 
 
-PL_BFGS <- fit_pl(
-    manifest = manifest,
-    constraintMat = constrMat,
-    method = 'ucminf2',
-    corrFLAG = 1,
-    silent = F,
-    ncores = 1
+PL_BFGS <- fit_plCFA(
+    DATA_LIST = list('DATA' = manifest, 'CONSTRMAT' = constrMat, 'CORRFLAG'=1),
+    METHOD = 'ucminf',
+    CPP_CONTROL = cpp_ctrl,
+    INIT = NULL
 )
 PL_BFGS
 ############################
@@ -137,7 +141,7 @@ mod$scale
 n_pairs <- (p*(p-1)/2)
 weights <- sampling_step(
     FULL_POOL = 1:n_pairs,
-    SAMPLINGFLAG = 1,
+    METHODFLAG = 1,
     PROB = .1,
     PAIRS_PER_ITERATION = round(n_pairs/10,0),
     N_ITEMS = p,
@@ -178,44 +182,110 @@ nll_grid
 stepsize_grid[which.min(nll_grid)]
 
 ########
+# cpp_ctrl <- list(
+#     MAXT = 3000,
+#     BURN = 100,
+#     PAIRS_PER_ITERATION = 1,
+#     PROB = .1
+# )
+# stepsize_tuning(
+#     DATA_LIST = list('DATA' = manifest, 'CONSTRMAT' = constrMat, 'CORRFLAG'=1),
+#     METHOD = 'st_hyper',
+#     CPP_CONTROL = cpp_ctrl,
+#     STEPSIZE_GRID = 5:15,
+#     INIT = NULL
+# )
+
+K = p*(p-1)/2; K
 cpp_ctrl <- list(
-    MAXT = 1000,
-    BURN = 100,
-    ETA = 7.9,
-    PAIRS_PER_ITERATION = 10,
-    PROB = .1
+    MAXT = K*20,
+    BURN = 500,
+    ETA = 7,
+    PAIRS_PER_ITERATION = 1,
+    PROB = 5/K
 )
-obj <- fit_plCFA(
+my_seq <- seq(0, cpp_ctrl$MAXT, 100)
+st_1 <- fit_plCFA(
     DATA_LIST = list('DATA' = manifest, 'CONSTRMAT' = constrMat, 'CORRFLAG'=1),
     METHOD = 'st_hyper',
     CPP_CONTROL = cpp_ctrl,
-    INIT = NULL
+    INIT = NULL,
+    ITERATIONS_SUBSET = my_seq
 )
-nll8 <- obj$fit$path_nll[length(obj$fit$path_nll)]
-mse8 <- mean((obj$theta-true_theta)^2)
+mean((st_1$theta-true_theta)^2)
+mean((PL_BFGS$theta-true_theta)^2)
 
-nll1; nll4; nll7; nll8
-mse1; mse4; mse7; mse8
-obj$args
-obj$fit$path_av_theta[nrow(obj$fit$path_av_theta),]
-mse8 <- mean((obj$theta-true_theta)^2)
-mse7;mse8
-obj$clock
-get_Lam(theta = obj$theta, c_vec=categories, A = constrMat)
-get_Sigma_u(theta = obj$theta, A = constrMat)
-PL_BFGS$loadings
-
+obj$fit$post_index
 
 cpp_ctrl <- list(
-    MAXT = 200,
-    BURN = 100,
-    PAIRS_PER_ITERATION = 10,
-    PROB = .1
+    MAXT = K*20,
+    BURN = 500,
+    ETA = 7,
+    PAIRS_PER_ITERATION = 100,
+    PROB = 5/K
 )
-stepsize_tuning(
+my_seq <- seq(0, cpp_ctrl$MAXT, 100)
+st_100 <- fit_plCFA(
     DATA_LIST = list('DATA' = manifest, 'CONSTRMAT' = constrMat, 'CORRFLAG'=1),
     METHOD = 'st_hyper',
     CPP_CONTROL = cpp_ctrl,
-    STEPSIZE_GRID = seq(7,9,.1),
-    INIT = NULL
+    INIT = NULL,
+    ITERATIONS_SUBSET = my_seq
 )
+
+cpp_ctrl <- list(
+    MAXT = K*20,
+    BURN = 500,
+    ETA = 7,
+    PAIRS_PER_ITERATION = 390,
+    PROB = 5/K
+)
+my_seq <- seq(0, cpp_ctrl$MAXT, 100)
+st_390 <- fit_plCFA(
+    DATA_LIST = list('DATA' = manifest, 'CONSTRMAT' = constrMat, 'CORRFLAG'=1),
+    METHOD = 'st_hyper',
+    CPP_CONTROL = cpp_ctrl,
+    INIT = NULL,
+    ITERATIONS_SUBSET = my_seq
+)
+
+library(tidyverse)
+par_tab <- get_tidy_path(st_1, 'path_av_theta') %>%
+    mutate(mod = 'nu1') %>%
+    bind_rows(
+        get_tidy_path(st_100, 'path_av_theta') %>%
+            mutate(mod = 'nu100')
+    ) %>%
+    bind_rows(
+        get_tidy_path(st_390, 'path_av_theta') %>%
+            mutate(mod = 'nu390')
+    ) %>%
+    mutate(
+        thresholds = map_dbl(path_av_theta, ~mean((.x[1:length(true_tau)]-true_theta[1:length(true_tau)])^2)),
+        loadings = map_dbl(path_av_theta, ~mean((get_lambda(.x, categories, constrMat)-get_lambda(true_theta, categories, constrMat))^2)),
+        corr = map_dbl(path_av_theta, ~mean((get_corr(.x, constrMat)-get_corr(true_theta, constrMat))^2))
+    ) %>%
+    gather(key = 'par', value = 'mse', thresholds, loadings, corr)
+
+bfgs_tab <- tibble(
+    thresholds = mean((PL_BFGS$theta[1:length(true_tau)]-true_theta[1:length(true_tau)])^2),
+    loadings = mean((get_lambda(PL_BFGS$theta, categories, constrMat)-get_lambda(true_theta, categories, constrMat))^2),
+    corr = mean((get_corr(PL_BFGS$theta, constrMat)-get_corr(true_theta, constrMat))^2)
+) %>%
+    gather(key = 'par', value = 'mse', thresholds, loadings, corr)
+
+
+gg <- ggplot()+
+    geom_line(data = par_tab, aes(x = iter, y = mse, col = mod)) +
+    geom_hline(data = bfgs_tab, aes(yintercept = mse), linetype = 'dashed')+
+    facet_wrap(vars(par), scales = 'free')+
+    theme_minimal()
+plotly::ggplotly(gg, dynamicTicks = T)
+get_Sigma_u(constrMat, obj$theta)
+get_Sigma_u(constrMat, true_latent)
+
+eig_list <- map( split(obj$fit$path_av_theta, seq(nrow(obj$fit$path_av_theta))) , ~eigen(get_Sigma_u(constrMat, .x))$values)
+sum(reduce(map(eig_list, ~sum(.x<0)), c) != 0)
+eig_list %>% filter(`1`<0)
+matrixcalc::is.positive.definite(get_Sigma_u(constrMat, obj$theta))
+PL_BFGS$fit
