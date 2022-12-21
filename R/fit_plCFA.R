@@ -16,7 +16,7 @@ fit_plCFA <- function(
         p <- ncol(DATA_LIST$DATA)
         n <- nrow(DATA_LIST$DATA)
         q <- ncol(DATA_LIST$CONSTRMAT)
-        categories <- apply(DATA_LIST$DATA, 2, max) + 1 ### number of categories in each item
+        categories <- apply(DATA_LIST$DATA, 2, max, na.rm = T) + 1 ### number of categories in each item
         d = sum(categories)-p + sum(DATA_LIST$CONSTRMAT) + q*(q-1)/2
 
         out$categories <- categories
