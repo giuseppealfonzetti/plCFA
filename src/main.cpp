@@ -112,8 +112,10 @@ Rcpp::List plCFA(
         const double TOLOBJ = 1e-3,
         const unsigned int TOLCOUNT = 10,                                 // How may consecutive iterations need to satisfy the convergence check in order to declare convergence
         const unsigned int SEED = 123 ,                                  // Random seed for sampling reproducibility
-        const unsigned int SILENTFLAG = 1
-
+        const unsigned int SILENTFLAG = 1,
+        const bool CHECKCONVERGENCE = false,
+        const double TOL = 1e-6,
+        const int TOLCOUNTER = 10
 ){
 
     // Set up clock monitor to export to R session trough RcppClock
@@ -169,7 +171,7 @@ Rcpp::List plCFA(
     unsigned int last_iter = MAXT;
 
     // std::vector<double> checkGrad;
-    // std::vector<double> checkPar;
+    std::vector<double> checkPar;
     // std::vector<double> checkObj;
 
     // Compute scaling constant
@@ -251,34 +253,20 @@ Rcpp::List plCFA(
     //
     //     // 9. Check convergence
     //     clock.tick("Convergence_check");
-    //     if(iter>0){
-    //
-    //         // check norm diff parameter vector
-    //         {
-    //             const double parNorm = (theta-path_theta.row(iter)).norm()/(path_theta.row(iter)).norm();
-    //             if(parNorm < tolPar & iter > miniter){tolPar_counter ++; }else{tolPar_counter = 0;}
-    //             if(tolPar_counter == tolcount){last_iter = iter; convergence = 1; break;}
-    //             checkPar.push_back(parNorm);
-    //         }
-    //
-    //
-    //         // check norm of Gradient approximation
-    //         {
-    //             const double gradNorm = Gt.norm();
-    //             if(gradNorm < tolGrad & iter > miniter){tolGrad_counter ++; }else{tolGrad_counter = 0;}
-    //             if(tolGrad_counter == tolcount){last_iter = iter; convergence = 2; break;}
-    //             checkGrad.push_back(gradNorm);
-    //         }
-    //
-    //         //check abs diff objective function
-    //         {
-    //             const double objDiff = abs(iter_nll-path_nll(iter-1));
-    //             if(objDiff < tolObj & iter > miniter){tolObj_counter ++; }else{tolObj_counter = 0;}
-    //             if(tolObj_counter == tolcount){last_iter = iter; convergence = 3; break;}
-    //             checkObj.push_back(objDiff);
-    //         }
-    //
-    //     }
+        if((iter > BURN) & CHECKCONVERGENCE){
+
+            // check norm diff parameter vector
+            {
+                const double parNorm = (path_av_theta.row(iter)-path_av_theta.row(iter-1)).norm()/(path_av_theta.row(iter-1)).norm();
+                if(parNorm < TOL ){tolPar_counter ++; }else{tolPar_counter = 0;}
+                checkPar.push_back(parNorm);
+                if(tolPar_counter == TOLCOUNTER){last_iter = iter; convergence = 1; break;}
+            }
+
+
+
+
+        }
     //     clock.tock("Convergence_check");
     //
     clock.tock("Iteration");
@@ -305,7 +293,7 @@ Rcpp::List plCFA(
             Rcpp::Named("path_theta") = path_theta,
             Rcpp::Named("path_av_theta") = path_av_theta,
             Rcpp::Named("path_grad") = path_grad,
-            // Rcpp::Named("checkPar") = checkPar,
+            Rcpp::Named("checkPar") = checkPar,
             // Rcpp::Named("checkGrad") = checkGrad,
             // Rcpp::Named("checkObj") = checkObj,
             Rcpp::Named("path_nll") = path_nll,

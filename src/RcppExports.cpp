@@ -48,6 +48,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// matrixprod
+Eigen::MatrixXd matrixprod(Eigen::MatrixXd A, Eigen::MatrixXd B);
+RcppExport SEXP _plCFA_matrixprod(SEXP ASEXP, SEXP BSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Eigen::MatrixXd >::type A(ASEXP);
+    Rcpp::traits::input_parameter< Eigen::MatrixXd >::type B(BSEXP);
+    rcpp_result_gen = Rcpp::wrap(matrixprod(A, B));
+    return rcpp_result_gen;
+END_RCPP
+}
 // multiThread_completePairwise
 Rcpp::List multiThread_completePairwise(Eigen::Map<Eigen::MatrixXd> Y, Eigen::Map<Eigen::VectorXd> C_VEC, Eigen::Map<Eigen::MatrixXd> A, Eigen::Map<Eigen::VectorXd> TAU, Eigen::Map<Eigen::VectorXd> LAMBDA, Eigen::Map<Eigen::VectorXd> TRANSFORMED_RHOS, Eigen::Map<Eigen::MatrixXd> FREQ, int CORRFLAG, int GRFLAG, int SILENTFLAG);
 RcppExport SEXP _plCFA_multiThread_completePairwise(SEXP YSEXP, SEXP C_VECSEXP, SEXP ASEXP, SEXP TAUSEXP, SEXP LAMBDASEXP, SEXP TRANSFORMED_RHOSSEXP, SEXP FREQSEXP, SEXP CORRFLAGSEXP, SEXP GRFLAGSEXP, SEXP SILENTFLAGSEXP) {
@@ -69,8 +81,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // plCFA
-Rcpp::List plCFA(Eigen::Map<Eigen::MatrixXd> DATA, Eigen::Map<Eigen::VectorXd> C_VEC, Eigen::Map<Eigen::MatrixXd> CONSTRMAT, Eigen::Map<Eigen::VectorXd> TAU, Eigen::Map<Eigen::VectorXd> LAMBDA, Eigen::Map<Eigen::VectorXd> TRANSFORMED_RHOS, const unsigned int CORRFLAG, const unsigned int METHODFLAG, const unsigned int PAIRS_PER_ITERATION, const double PROB, double ETA, const unsigned int BURN, const unsigned int MAXT, const double TOLGRAD, const double TOLPAR, const double TOLOBJ, const unsigned int TOLCOUNT, const unsigned int SEED, const unsigned int SILENTFLAG);
-RcppExport SEXP _plCFA_plCFA(SEXP DATASEXP, SEXP C_VECSEXP, SEXP CONSTRMATSEXP, SEXP TAUSEXP, SEXP LAMBDASEXP, SEXP TRANSFORMED_RHOSSEXP, SEXP CORRFLAGSEXP, SEXP METHODFLAGSEXP, SEXP PAIRS_PER_ITERATIONSEXP, SEXP PROBSEXP, SEXP ETASEXP, SEXP BURNSEXP, SEXP MAXTSEXP, SEXP TOLGRADSEXP, SEXP TOLPARSEXP, SEXP TOLOBJSEXP, SEXP TOLCOUNTSEXP, SEXP SEEDSEXP, SEXP SILENTFLAGSEXP) {
+Rcpp::List plCFA(Eigen::Map<Eigen::MatrixXd> DATA, Eigen::Map<Eigen::VectorXd> C_VEC, Eigen::Map<Eigen::MatrixXd> CONSTRMAT, Eigen::Map<Eigen::VectorXd> TAU, Eigen::Map<Eigen::VectorXd> LAMBDA, Eigen::Map<Eigen::VectorXd> TRANSFORMED_RHOS, const unsigned int CORRFLAG, const unsigned int METHODFLAG, const unsigned int PAIRS_PER_ITERATION, const double PROB, double ETA, const unsigned int BURN, const unsigned int MAXT, const double TOLGRAD, const double TOLPAR, const double TOLOBJ, const unsigned int TOLCOUNT, const unsigned int SEED, const unsigned int SILENTFLAG, const bool CHECKCONVERGENCE, const double TOL, const int TOLCOUNTER);
+RcppExport SEXP _plCFA_plCFA(SEXP DATASEXP, SEXP C_VECSEXP, SEXP CONSTRMATSEXP, SEXP TAUSEXP, SEXP LAMBDASEXP, SEXP TRANSFORMED_RHOSSEXP, SEXP CORRFLAGSEXP, SEXP METHODFLAGSEXP, SEXP PAIRS_PER_ITERATIONSEXP, SEXP PROBSEXP, SEXP ETASEXP, SEXP BURNSEXP, SEXP MAXTSEXP, SEXP TOLGRADSEXP, SEXP TOLPARSEXP, SEXP TOLOBJSEXP, SEXP TOLCOUNTSEXP, SEXP SEEDSEXP, SEXP SILENTFLAGSEXP, SEXP CHECKCONVERGENCESEXP, SEXP TOLSEXP, SEXP TOLCOUNTERSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -93,7 +105,10 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const unsigned int >::type TOLCOUNT(TOLCOUNTSEXP);
     Rcpp::traits::input_parameter< const unsigned int >::type SEED(SEEDSEXP);
     Rcpp::traits::input_parameter< const unsigned int >::type SILENTFLAG(SILENTFLAGSEXP);
-    rcpp_result_gen = Rcpp::wrap(plCFA(DATA, C_VEC, CONSTRMAT, TAU, LAMBDA, TRANSFORMED_RHOS, CORRFLAG, METHODFLAG, PAIRS_PER_ITERATION, PROB, ETA, BURN, MAXT, TOLGRAD, TOLPAR, TOLOBJ, TOLCOUNT, SEED, SILENTFLAG));
+    Rcpp::traits::input_parameter< const bool >::type CHECKCONVERGENCE(CHECKCONVERGENCESEXP);
+    Rcpp::traits::input_parameter< const double >::type TOL(TOLSEXP);
+    Rcpp::traits::input_parameter< const int >::type TOLCOUNTER(TOLCOUNTERSEXP);
+    rcpp_result_gen = Rcpp::wrap(plCFA(DATA, C_VEC, CONSTRMAT, TAU, LAMBDA, TRANSFORMED_RHOS, CORRFLAG, METHODFLAG, PAIRS_PER_ITERATION, PROB, ETA, BURN, MAXT, TOLGRAD, TOLPAR, TOLOBJ, TOLCOUNT, SEED, SILENTFLAG, CHECKCONVERGENCE, TOL, TOLCOUNTER));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -120,8 +135,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plCFA_pairs_freq", (DL_FUNC) &_plCFA_pairs_freq, 2},
     {"_plCFA_get_Lam", (DL_FUNC) &_plCFA_get_Lam, 3},
     {"_plCFA_get_Sigma_u", (DL_FUNC) &_plCFA_get_Sigma_u, 2},
+    {"_plCFA_matrixprod", (DL_FUNC) &_plCFA_matrixprod, 2},
     {"_plCFA_multiThread_completePairwise", (DL_FUNC) &_plCFA_multiThread_completePairwise, 10},
-    {"_plCFA_plCFA", (DL_FUNC) &_plCFA_plCFA, 19},
+    {"_plCFA_plCFA", (DL_FUNC) &_plCFA_plCFA, 22},
     {"_plCFA_sampling_step", (DL_FUNC) &_plCFA_sampling_step, 8},
     {NULL, NULL, 0}
 };

@@ -128,4 +128,10 @@ Eigen::VectorXd extract_thresholds(const Eigen::VectorXd tau,
     return pi_thresholds;
 }
 
+//' @export
+// [[Rcpp::export]]
+Eigen::MatrixXd matrixprod(Eigen::MatrixXd A, Eigen::MatrixXd B){
+    return A * B;
+
+}
 #endif

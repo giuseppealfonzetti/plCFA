@@ -140,7 +140,7 @@ fit_plCFA <- function(
 
                 # Check iterations selected
                 if(!is.null(ITERATIONS_SUBSET)){
-                        out$iterations_subset <- c(0, ITERATIONS_SUBSET[ITERATIONS_SUBSET < cpp_ctrl$MAXT], cpp_ctrl$MAXT)
+                        out$iterations_subset <- unique(c(0, ITERATIONS_SUBSET[ITERATIONS_SUBSET < cpp_ctrl$MAXT], cpp_ctrl$MAXT))
                 }else{
                         out$iterations_subset <- 0:cpp_ctrl$MAXT
                 }
@@ -165,6 +165,8 @@ fit_plCFA <- function(
                 end_time <- Sys.time()
                 out$time <- as.numeric(difftime(end_time, start_time, units = 'secs')[1])
 
+                out$iterations_subset <- c(out$iterations_subset, fit$last_iter)#[c(out$iterations_subset, fit$las_iter-1)<=(fit$las_iter-1)]
+                out$iterations_subset <- out$iterations_subset[out$iterations_subset<=fit$last_iter]
                 fit$path_theta    <- fit$path_theta[out$iterations_subset + 1,]
                 fit$path_av_theta <- fit$path_av_theta[out$iterations_subset + 1,]
                 fit$path_grad     <- fit$path_grad[out$iterations_subset,]

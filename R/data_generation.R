@@ -62,6 +62,15 @@ gen_loadings <- function(FIXED = NULL, CONSTRAINT_MAT = NULL, SEED = 123){
 }
 
 #'@export
+rmvn <- function(SAMPLE_SIZE, VAR){
+    dim <- ncol(VAR)
+    #sample <- t(t(chol(VAR))%*%matrix(rnorm(dim*SAMPLE_SIZE), dim, SAMPLE_SIZE))
+    sample <- t(matrixprod(t(chol(VAR)), matrix(rnorm(dim*SAMPLE_SIZE), dim, SAMPLE_SIZE)))
+
+    return(sample)
+}
+
+#'@export
 gen_URV_data <- function(SAMPLE_SIZE, LOADINGS, THRESHOLDS, LATENT_COV, SEED = 123){
 
     set.seed(SEED)
@@ -69,8 +78,8 @@ gen_URV_data <- function(SAMPLE_SIZE, LOADINGS, THRESHOLDS, LATENT_COV, SEED = 1
     p <- nrow(LOADINGS)
     error_variance <- diag(1, p, p) - diag(diag(LOADINGS%*%LATENT_COV%*%t(LOADINGS)),p,p)
 
-    errors <- mvtnorm::rmvnorm(n = SAMPLE_SIZE, sigma = error_variance)
-    factors <- mvtnorm::rmvnorm(n = SAMPLE_SIZE, sigma = LATENT_COV)
+    errors <- rmvn(SAMPLE_SIZE = SAMPLE_SIZE, VAR = error_variance)
+    factors <- rmvn(SAMPLE_SIZE = SAMPLE_SIZE, VAR = LATENT_COV)
 
     URV <- factors %*% t(LOADINGS) + errors
 
