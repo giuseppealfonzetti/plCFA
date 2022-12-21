@@ -395,3 +395,37 @@ st_fit$fit$last_iter
 st_fit$fit$path_av_theta
 length(st_fit$fit$checkPar)
 length(st_fit$iterations_subset)
+length(test)
+
+
+##### check freq ####à
+seed <- 1
+set.seed(seed)
+p <- 10; q <- 2; n <- 100
+constrMat <- build_constrMat(p,q,'simple')
+true_load <- gen_loadings(FIXED = NULL, CONSTRAINT_MAT = constrMat, SEED = seed)
+true_tau <- c(-1.2, 0, 1.2)
+
+mat <- matrix(runif(q*q, 0.3,.7),q,q)
+mat[!lower.tri(mat)] <- 0
+mat <- mat + t(mat)
+diag(mat) <- 1
+true_latent <- mat
+#true_latent <- matrix(.212,q,q); diag(true_latent) <- 1
+# true_latent <- matrix(c(1,0.5995658,0.4935413,
+#   0.5995658,1,0.6684667,
+#   0.4935413,0.6684667,1),q,q)
+true_theta <- get_theta(rep(true_tau, p), true_load, true_latent, cat, constrMat, 0)
+seed1 <- 16
+manifest <- gen_URV_data(n, true_load, true_tau, true_latent,
+                         SEED = seed1)
+
+categories <- apply(manifest, 2, max) + 1
+freq_tab <- pairs_freq(manifest, categories)
+freq_tab
+freq_tab[,1:16]
+
+manifest1 <- manifest
+manifest1[1,1] <-NA
+freq_tab1 <- pairs_freq(manifest1, categories)
+freq_tab1[,1:16]
