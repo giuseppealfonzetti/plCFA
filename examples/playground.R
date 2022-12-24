@@ -2,7 +2,7 @@
 library(RcppClock)
 seed <- 1
 set.seed(seed)
-p <- 40; q <- 4; n <- 10000
+p <- 40; q <- 8; n <- 10000
 constrMat <- build_constrMat(p,q,'simple')
 true_load <- gen_loadings(FIXED = NULL, CONSTRAINT_MAT = constrMat, SEED = seed)
 true_tau <- c(-1.2, 0, 1.2)
@@ -333,6 +333,11 @@ mean((st_32$theta-true_theta)^2)
 # mean((st_128$theta-true_theta)^2)
 mean((PL_BFGS$theta-true_theta)^2)
 
+PL_BFGS$theta[(length(true_theta)-(q*(q-1)/2)+1):length(true_theta)]
+true_theta[(length(true_theta)-(q*(q-1)/2)+1):length(true_theta)]
+
+get_Sigma_u(PL_BFGS$theta, constrMat)
+get_Sigma_u(true_theta, constrMat)
 # st_1$clock[1,2]*st_1$clock[1,6]
 # st_4$clock[1,2]*st_4$clock[1,6]
 st_8$clock[1,2]*st_8$clock[1,6]
