@@ -178,7 +178,7 @@ Rcpp::List plCFA(
     double scale;
     switch(METHODFLAG){
     case 0:
-        scale = 1/static_cast<double>(n*PAIRS_PER_ITERATION) ;
+        scale = static_cast<double>(P)/static_cast<double>(n*PAIRS_PER_ITERATION) ;
         break;
     case 1:
         scale = PROB/static_cast<double>(n);
@@ -229,7 +229,8 @@ Rcpp::List plCFA(
 
         // 3. Update theta
         clock.tick("Update");
-        double stepsize = ETA*pow(iter, -.5-1e-2);
+        // double stepsize = ETA*pow(iter, -.5-1e-2);
+        double stepsize = ETA*(1+.0002*ETA*pow(iter, -.75));
         theta -= stepsize * iter_gradient;
         clock.tock("Update");
 

@@ -118,7 +118,11 @@ fit_plCFA <- function(
                         'hessian' = UCMINF_CONTROL$hessian)
 
                 # optimisation
+                start_opt <- Sys.time()
                 opt <- do.call(ucminf::ucminf, args)
+                end_opt <- Sys.time()
+                out$num_time <- as.numeric(difftime(end_opt, start_opt, units = 'secs')[1])
+
                 out$fit <- opt
 
                 out$control <- UCMINF_CONTROL
@@ -162,6 +166,8 @@ fit_plCFA <- function(
                 args$METHODFLAG <- dplyr::if_else(METHOD == 'st_hyper', 0, 1)
 
                 fit <- do.call(plCFA, args)
+                message('\n3. Rearranging output...')
+
                 end_time <- Sys.time()
                 out$time <- as.numeric(difftime(end_time, start_time, units = 'secs')[1])
 
@@ -176,7 +182,7 @@ fit_plCFA <- function(
                 out$theta <- fit$path_av_theta[nrow(fit$path_av_theta),]
 
                 if('RcppClock'%in% (.packages())) out$clock <- summary(clock, units = 's')
-                message('\n3. Done! (', round(out$time,2),' secs)')
+                message('\n4. Done! (', round(out$time,2),' secs)')
 
 
                 return(out)
