@@ -64,10 +64,10 @@ get_theta <- function(TAU, LOADINGS, LATENT_COV, CAT, A, TAUREPFLAG = 1){
 
     corr_vec <- c()
     s <- 1
-    for(j in 1:ncol(LATENT_COV)){
-        for (i in 1:nrow(LATENT_COV)){
+    for (i in 1:nrow(LATENT_COV)){
+        for(j in 1:ncol(LATENT_COV)){
             if(i>j){
-                rho <- LATENT_COV[j,i]
+                rho <- LATENT_COV[i,j]
                 corr_vec[s] <- dplyr::if_else(abs(rho)<=1,.5*log((rho+1)/(1-rho)), 0)
                 s = s+1
             }
