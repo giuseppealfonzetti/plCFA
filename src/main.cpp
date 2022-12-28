@@ -230,7 +230,8 @@ Rcpp::List plCFA(
         // 3. Update theta
         clock.tick("Update");
         // double stepsize = ETA*pow(iter, -.5-1e-2);
-        double stepsize = ETA*(1+.0002*ETA*pow(iter, -.75));
+        double stepsize = ETA * pow(1 + 1*pow(ETA,2)*iter, -.75);
+        // double stepsize = ETA*(1+.0002*ETA*pow(iter, -.75));
         theta -= stepsize * iter_gradient;
         clock.tock("Update");
 
